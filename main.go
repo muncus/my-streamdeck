@@ -2,7 +2,6 @@
 package main
 
 import (
-	"image/color"
 	"os"
 	"sync"
 
@@ -23,12 +22,17 @@ func main() {
 	}
 	log.Info().Msgf("Found streamdeck: %+v", sd)
 
-	// Set up a button to do something.
-	b1 := buttons.NewTextButton("   test   ")
-	b1action := actionhandlers.NewCustomAction(func(streamdeck.Button) {
+	// define some actions.
+	muteaction := actionhandlers.NewCustomAction(func(streamdeck.Button) {
+		go ToggleMeetMute()
+	})
+	debugAction := actionhandlers.NewCustomAction(func(streamdeck.Button) {
 		log.Debug().Msg("button was pressed!")
 	})
-	b1.SetActionHandler(b1action)
+
+	// Set up a button to do something.
+	b1 := buttons.NewTextButton("   test   ")
+	b1.SetActionHandler(debugAction)
 	sd.AddButton(0, b1)
 
 	// An image button.
@@ -36,19 +40,16 @@ func main() {
 	if err != nil {
 		log.Fatal().Msgf("Could not create Image button: %s", err)
 	}
-	b2.SetActionHandler(b1action)
+	b2.SetActionHandler(muteaction)
 	sd.AddButton(1, b2)
 
-	cButton := buttons.NewColourButton(color.RGBA{255, 255, 0, 255})
-	sd.AddButton(2, cButton)
-
 	// An image button.
-	b3, err := buttons.NewImageFileButton("images/teapod-sad.png")
+	teapotButton, err := buttons.NewImageFileButton("images/teapod-sad.png")
 	if err != nil {
 		log.Fatal().Msgf("Could not create Image button: %s", err)
 	}
-	b3.SetActionHandler(b1action)
-	sd.AddButton(3, b3)
+	teapotButton.SetActionHandler(debugAction)
+	sd.AddButton(2, teapotButton)
 
 	// wait for us to be done.
 	var wg sync.WaitGroup
