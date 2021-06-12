@@ -9,8 +9,13 @@ import (
 // Toggle microphone mute in active Google Meet window.
 // Relies on xdotool.
 func ToggleMeetMute() {
-	cmd := exec.Command("xdotool", "search", "--name", "Meet *", "windowfocus", "key", "ctrl+d")
+	// Typical Meet window titles are "Meet - xxx-xxx-xxx".
+	// The title remains when you close the meeting, so this cmd will bookmark it.
+	// The Meet "home page" is titled "Google Meet", and will not match this pattern.
+	cmd := exec.Command("xdotool", "search", "--name", "Meet - *", "windowfocus", "key", "ctrl+d")
 	output, err := cmd.CombinedOutput()
-	log.Debug().Msg(string(output))
-	log.Debug().Msgf("%#v", err)
+	if err != nil {
+		log.Debug().Msg(string(output))
+		log.Debug().Msgf("%#v", err)
+	}
 }
