@@ -3,16 +3,19 @@ package main
 
 import (
 	"os"
-	"sync"
+	"os/signal"
 
 	streamdeck "github.com/magicmonkey/go-streamdeck"
 	"github.com/magicmonkey/go-streamdeck/actionhandlers"
 	"github.com/magicmonkey/go-streamdeck/buttons"
 	_ "github.com/magicmonkey/go-streamdeck/devices"
+	"github.com/muncus/my-streamdeck/plugins"
 	"github.com/muncus/my-streamdeck/plugins/googlemeet"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
+
+var deckDevice *streamdeck.StreamDeck
 
 func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
@@ -21,6 +24,7 @@ func main() {
 		log.Fatal().Msgf("Failed to open Stream Deck: %s", err)
 		os.Exit(1)
 	}
+	deckDevice = sd
 	log.Info().Msgf("Found streamdeck: %+v", sd)
 
 	// define some actions.
@@ -50,8 +54,23 @@ func main() {
 	teapotButton.SetActionHandler(debugAction)
 	sd.AddButton(2, teapotButton)
 
-	// wait for us to be done.
-	var wg sync.WaitGroup
-	wg.Add(1)
-	wg.Wait()
+	// Gracefully exit, clearing buttons.
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt)
+
+	select {
+	case sig := <-c:
+		_ = sig
+		cleanup()
+	}
+
+	// // wait for us to be done.
+	// var wg sync.WaitGroup
+	// wg.Add(1)
+	// wg.Wait()
+}
+
+func cleanup() {
+	log.Info().Msg("Cleaning up...")
+	plugins.ClearButtons(deckDevice)
 }
