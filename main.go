@@ -9,6 +9,7 @@ import (
 	"github.com/magicmonkey/go-streamdeck/actionhandlers"
 	"github.com/magicmonkey/go-streamdeck/buttons"
 	_ "github.com/magicmonkey/go-streamdeck/devices"
+	"github.com/muncus/my-streamdeck/plugins/googlemeet"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -23,25 +24,23 @@ func main() {
 	log.Info().Msgf("Found streamdeck: %+v", sd)
 
 	// define some actions.
-	muteaction := actionhandlers.NewCustomAction(func(streamdeck.Button) {
-		go ToggleMeetMute()
-	})
 	debugAction := actionhandlers.NewCustomAction(func(streamdeck.Button) {
 		log.Debug().Msg("button was pressed!")
 	})
 
-	// Set up a button to do something.
-	b1 := buttons.NewTextButton("   test   ")
-	b1.SetActionHandler(debugAction)
-	sd.AddButton(0, b1)
+	// // Set up a button to do something.
+	// b1 := buttons.NewTextButton(" test ")
+	// b1.SetActionHandler(debugAction)
+	// sd.AddButton(0, b1)
+	// sd.SetDecorator(b1.GetButtonIndex(), decorators.NewBorder(10, color.RGBA{255, 0, 0, 255}))
 
-	// An image button.
-	b2, err := buttons.NewImageFileButton("images/mic.png")
+	// Meet Mutes
+	meetPlugin, err := googlemeet.NewGoogleMeetPlugin(sd)
 	if err != nil {
-		log.Fatal().Msgf("Could not create Image button: %s", err)
+		log.Error().Msgf("failed to initialize googlemeet plugin: %s", err)
 	}
-	b2.SetActionHandler(muteaction)
-	sd.AddButton(1, b2)
+	sd.AddButton(0, meetPlugin.VideoMuteButton)
+	sd.AddButton(5, meetPlugin.MuteButton)
 
 	// An image button.
 	teapotButton, err := buttons.NewImageFileButton("images/teapod-sad.png")
