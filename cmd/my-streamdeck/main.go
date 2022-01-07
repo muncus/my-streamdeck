@@ -11,6 +11,7 @@ import (
 	_ "github.com/magicmonkey/go-streamdeck/devices"
 	"github.com/muncus/my-streamdeck/plugins"
 	"github.com/muncus/my-streamdeck/plugins/googlemeet"
+	"github.com/muncus/my-streamdeck/plugins/obswebsocket"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -45,6 +46,13 @@ func main() {
 	}
 	sd.AddButton(0, meetPlugin.VideoMuteButton)
 	sd.AddButton(5, meetPlugin.MuteButton)
+
+	// OBS Plugin
+	obsPlugin := obswebsocket.New(sd)
+	scene1 := obsPlugin.NewSceneButton("webcam")
+	sd.AddButton(4, scene1)
+	scene2 := obsPlugin.NewSceneButton("sad-teapot")
+	sd.AddButton(9, scene2)
 
 	// An image button.
 	teapotButton, err := buttons.NewImageFileButton("images/teapod-sad.png")
