@@ -6,7 +6,6 @@ import (
 	"os/signal"
 
 	streamdeck "github.com/magicmonkey/go-streamdeck"
-	"github.com/magicmonkey/go-streamdeck/actionhandlers"
 	"github.com/magicmonkey/go-streamdeck/buttons"
 	_ "github.com/magicmonkey/go-streamdeck/devices"
 	"github.com/muncus/my-streamdeck/plugins"
@@ -20,62 +19,41 @@ var deckDevice *streamdeck.StreamDeck
 
 func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	sd, err := streamdeck.New()
+	var err error
+	deckDevice, err = streamdeck.New()
 	if err != nil {
 		log.Fatal().Msgf("Failed to open Stream Deck: %s", err)
 		os.Exit(1)
 	}
-	deckDevice = sd
-	log.Info().Msgf("Found streamdeck: %+v", sd)
-
-	// define some actions.
-	debugAction := actionhandlers.NewCustomAction(func(streamdeck.Button) {
-		log.Debug().Msg("button was pressed!")
-	})
-
-	// // Set up a button to do something.
-	// b1 := buttons.NewTextButton(" test ")
-	// b1.SetActionHandler(debugAction)
-	// sd.AddButton(0, b1)
-	// sd.SetDecorator(b1.GetButtonIndex(), decorators.NewBorder(10, color.RGBA{255, 0, 0, 255}))
+	log.Info().Msgf("Found streamdeck: %+v", deckDevice)
 
 	// Meet Mutes
-	meetPlugin, err := googlemeet.NewGoogleMeetPlugin(sd)
+	meetPlugin, err := googlemeet.NewGoogleMeetPlugin(deckDevice)
 	if err != nil {
 		log.Error().Msgf("failed to initialize googlemeet plugin: %s", err)
 	}
-	sd.AddButton(0, meetPlugin.VideoMuteButton)
-	sd.AddButton(5, meetPlugin.MuteButton)
+	deckDevice.AddButton(0, meetPlugin.VideoMuteButton)
+	deckDevice.AddButton(5, meetPlugin.MuteButton)
 
 	// OBS Plugin
-	obsPlugin := obswebsocket.New(sd)
+	obsPlugin := obswebsocket.New(deckDevice)
 	scene1 := obsPlugin.NewSceneButton("webcam")
-	sd.AddButton(4, scene1)
-	scene2 := obsPlugin.NewSceneButton("sad-teapot")
-	sd.AddButton(9, scene2)
-
-	// An image button.
-	teapotButton, err := buttons.NewImageFileButton("images/teapod-sad.png")
+	deckDevice.AddButton(4, scene1)
+	scene2, err := buttons.NewImageFileButton("images/teapod-sad.png")
 	if err != nil {
 		log.Fatal().Msgf("Could not create Image button: %s", err)
 	}
-	teapotButton.SetActionHandler(debugAction)
-	sd.AddButton(2, teapotButton)
+	scene2.SetActionHandler(obsPlugin.NewSceneChangeAction("sad-teapot"))
+	deckDevice.AddButton(9, scene2)
 
-	// Gracefully exit, clearing buttons.
-	c := make(chan os.Signal)
+	// Gracefully exit on interrupt, clearing buttons.
+	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 
 	select {
-	case sig := <-c:
-		_ = sig
+	case <-c:
 		cleanup()
 	}
-
-	// // wait for us to be done.
-	// var wg sync.WaitGroup
-	// wg.Add(1)
-	// wg.Wait()
 }
 
 func cleanup() {

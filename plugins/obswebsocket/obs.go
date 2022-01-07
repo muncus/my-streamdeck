@@ -1,3 +1,5 @@
+// package obswebsocket contains the plugin for communicating with OBS Studio, using the obs-websocket addon for OBS.
+// The protocol for this socket is described at https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md
 package obswebsocket
 
 import (
@@ -5,7 +7,7 @@ import (
 	"image/color"
 	"time"
 
-	"github.com/christopher-dG/go-obs-websocket"
+	obsws "github.com/christopher-dG/go-obs-websocket"
 	"github.com/magicmonkey/go-streamdeck"
 	"github.com/magicmonkey/go-streamdeck/actionhandlers"
 	"github.com/magicmonkey/go-streamdeck/buttons"
@@ -45,11 +47,11 @@ func (p *OBSPlugin) connect() {
 	p.setButtonsEnabled(p.client.Connected())
 }
 
+// TODO: use a mechanic like this to disable OBS buttons when we're not connected to obs.
 func (p *OBSPlugin) setButtonsEnabled(enabled bool) {
 	if enabled {
 		for _, b := range p.ownedButtons {
 			p.d.SetDecorator(b.GetButtonIndex(), disabledButtonDecorator)
-
 		}
 	} else {
 		for _, b := range p.ownedButtons {
@@ -58,13 +60,16 @@ func (p *OBSPlugin) setButtonsEnabled(enabled bool) {
 	}
 }
 
+// NewSceneButton creates a button that will change to the named scene when pressed
+// the button appearance will be the name of the desired scene.
 func (p *OBSPlugin) NewSceneButton(scenename string) plugins.ActionButton {
 	btn := buttons.NewTextButton(scenename)
-	btn.SetActionHandler(p.sceneChangeAction(scenename))
+	btn.SetActionHandler(p.NewSceneChangeAction(scenename))
 	return btn
 }
 
-func (p *OBSPlugin) sceneChangeAction(scene string) streamdeck.ButtonActionHandler {
+// NewSceneChangeAction returns a handler that changes scene to the named scene in OBS.
+func (p *OBSPlugin) NewSceneChangeAction(scene string) streamdeck.ButtonActionHandler {
 	a := actionhandlers.NewCustomAction(func(streamdeck.Button) {
 		req := obsws.NewSetCurrentSceneRequest(scene)
 		resp, err := req.SendReceive(*p.client)
