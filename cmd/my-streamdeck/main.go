@@ -2,8 +2,10 @@
 package main
 
 import (
+	"flag"
 	"os"
 	"os/signal"
+	"path/filepath"
 
 	streamdeck "github.com/magicmonkey/go-streamdeck"
 	"github.com/magicmonkey/go-streamdeck/buttons"
@@ -13,13 +15,31 @@ import (
 	"github.com/muncus/my-streamdeck/plugins/obswebsocket"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"gopkg.in/yaml.v2"
 )
 
 var deckDevice *streamdeck.StreamDeck
+var configFile = flag.String("config", "", "Config file, in yaml format")
 
 func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	var err error
+
+	flag.Parse()
+
+	// load a config file.
+	abspath, _ := filepath.Abs(*configFile)
+	configbytes, err := os.ReadFile(abspath)
+	if err != nil {
+		log.Fatal().Msgf("failed to read config file (%s): %s", configFile, err)
+	}
+	configstruct := make(map[string]map[string]string)
+
+	err = yaml.Unmarshal(configbytes, &configstruct)
+	if err != nil {
+		log.Fatal().Msgf("failed to parse config file (%s): %s", configFile, err)
+	}
+
 	deckDevice, err = streamdeck.New()
 	if err != nil {
 		log.Fatal().Msgf("Failed to open Stream Deck: %s", err)
@@ -37,7 +57,8 @@ func main() {
 	deckDevice.AddButton(10, meetPlugin.RaiseHandButton)
 
 	// OBS Plugin
-	obsPlugin := obswebsocket.New(deckDevice)
+	pluginconfig := configstruct["obswebsocket"]
+	obsPlugin := obswebsocket.New(deckDevice, pluginconfig)
 	scene1 := obsPlugin.NewSceneButton("webcam")
 	deckDevice.AddButton(4, scene1)
 	scene2, err := buttons.NewImageFileButton("images/teapod-sad.png")

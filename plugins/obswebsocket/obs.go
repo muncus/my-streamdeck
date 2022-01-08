@@ -5,6 +5,7 @@ package obswebsocket
 import (
 	"fmt"
 	"image/color"
+	"strconv"
 	"time"
 
 	obsws "github.com/christopher-dG/go-obs-websocket"
@@ -26,13 +27,15 @@ type OBSPlugin struct {
 	ownedButtons []plugins.ActionButton // track all buttons we own, so they can be enabled/disabled
 }
 
-func New(d *streamdeck.StreamDeck) *OBSPlugin {
+func New(d *streamdeck.StreamDeck, config map[string]string) *OBSPlugin {
+	portnum, _ := strconv.ParseInt(config["port"], 10, 32)
 	plugin := &OBSPlugin{
 		d: d,
-		// TODO: make this settable
+		// TODO: define config better. as a struct.
 		client: &obsws.Client{
-			Host: "localhost",
-			Port: 4444,
+			Host:     config["host"],
+			Port:     int(portnum),
+			Password: config["password"],
 		},
 	}
 	obsws.SetReceiveTimeout(5 * time.Second)
