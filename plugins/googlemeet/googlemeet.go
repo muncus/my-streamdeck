@@ -15,6 +15,7 @@ import (
 type GoogleMeetPlugin struct {
 	MuteButton      plugins.ActionButton
 	VideoMuteButton plugins.ActionButton
+	RaiseHandButton plugins.ActionButton
 }
 
 func NewGoogleMeetPlugin(d *streamdeck.StreamDeck) (*GoogleMeetPlugin, error) {
@@ -43,6 +44,20 @@ func NewGoogleMeetPlugin(d *streamdeck.StreamDeck) (*GoogleMeetPlugin, error) {
 	}
 	p.VideoMuteButton.SetActionHandler(actionhandlers.NewCustomAction(func(streamdeck.Button) {
 		cmd := exec.Command("xdotool", "search", "--name", "Meet - *", "windowfocus", "key", "ctrl+e")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			log.Debug().Msg(string(output))
+			log.Debug().Msgf("%#v", err)
+		}
+	}))
+
+	// Raise hand
+	p.RaiseHandButton, err = buttons.NewImageFileButton("images/hand.png")
+	if err != nil {
+		return &GoogleMeetPlugin{}, fmt.Errorf("failed to create image button: %s", err)
+	}
+	p.RaiseHandButton.SetActionHandler(actionhandlers.NewCustomAction(func(streamdeck.Button) {
+		cmd := exec.Command("xdotool", "search", "--name", "Meet - *", "windowfocus", "key", "ctrl+alt+h")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			log.Debug().Msg(string(output))

@@ -34,6 +34,7 @@ func main() {
 	}
 	deckDevice.AddButton(0, meetPlugin.VideoMuteButton)
 	deckDevice.AddButton(5, meetPlugin.MuteButton)
+	deckDevice.AddButton(10, meetPlugin.RaiseHandButton)
 
 	// OBS Plugin
 	obsPlugin := obswebsocket.New(deckDevice)
