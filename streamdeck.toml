@@ -1,4 +1,5 @@
 # Plugin configuration for streamdeck
+log_level = "debug"
 
 [obswebsocket]
 host = "localhost"

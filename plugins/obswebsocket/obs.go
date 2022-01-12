@@ -5,6 +5,7 @@ package obswebsocket
 import (
 	"fmt"
 	"image/color"
+	"io"
 	"os"
 	"time"
 
@@ -24,10 +25,6 @@ import (
 var disabledButtonDecorator streamdeck.ButtonDecorator = decorators.NewBorder(15, color.RGBA{255, 0, 0, 150})
 var Logger zerolog.Logger = log.Logger.With().Str("plugin", "obswebsocket").Logger().Output(zerolog.ConsoleWriter{Out: os.Stdout})
 
-func init() {
-	obsws.Logger.SetOutput(Logger.With().Str("level", "debug").Logger())
-}
-
 // OBSPluginConfig describes valid config options that can be specified for this plugin
 type OBSPluginConfig struct {
 	Host     string
@@ -46,6 +43,13 @@ type OBSPlugin struct {
 // New creates a new instance of the OBS plugin, to display on the given streamdeck.
 // config may contain fields from OBSPluginConfig.
 func New(d *streamdeck.StreamDeck, config *toml.Tree) (*OBSPlugin, error) {
+	// obsws logs are considered at "debug" level, so disable them if we've asked for no debug logs.
+	// the standard logging library does not have a concept of log levels, so we set the output stream manually
+	if e := log.Debug(); e.Enabled() {
+		obsws.Logger.SetOutput(Logger.With().Str("level", "debug").Logger())
+	} else {
+		obsws.Logger.SetOutput(io.Discard)
+	}
 	configstruct := &OBSPluginConfig{}
 	err := toml.Unmarshal([]byte(config.String()), configstruct)
 	if err != nil {

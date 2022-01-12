@@ -38,6 +38,11 @@ func main() {
 	if err != nil {
 		log.Fatal().Msgf("failed to read config file (%s): %s", abspath, err)
 	}
+	l, err := zerolog.ParseLevel(config.GetDefault("log_level", "debug").(string))
+	if err != nil {
+		log.Fatal().Msgf("invalid log_level (%s): %s", config.Get("log_level"), err)
+	}
+	zerolog.SetGlobalLevel(l)
 
 	deckDevice, err = streamdeck.New()
 	if err != nil {
