@@ -33,7 +33,7 @@ type OBSPlugin struct {
 	ownedButtons []plugins.ActionButton // track all buttons we own, so they can be enabled/disabled
 }
 
-func New(d *streamdeck.StreamDeck, config *OBSPluginConfig) *OBSPlugin {
+func New(d *streamdeck.StreamDeck, config *OBSPluginConfig) (*OBSPlugin, error) {
 	plugin := &OBSPlugin{
 		d: d,
 		// TODO: define config better. as a struct.
@@ -45,7 +45,7 @@ func New(d *streamdeck.StreamDeck, config *OBSPluginConfig) *OBSPlugin {
 	}
 	obsws.SetReceiveTimeout(5 * time.Second)
 	go plugin.connect()
-	return plugin
+	return plugin, nil
 }
 
 // connect to the obs websocket, and activate buttons.

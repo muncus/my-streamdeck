@@ -31,7 +31,7 @@ func main() {
 	abspath, _ := filepath.Abs(*configFile)
 	config, err := toml.LoadFile(abspath)
 	if err != nil {
-		log.Fatal().Msgf("failed to read config file (%s): %s", configFile, err)
+		log.Fatal().Msgf("failed to read config file (%s): %s", abspath, err)
 	}
 
 	deckDevice, err = streamdeck.New()
@@ -42,9 +42,11 @@ func main() {
 	log.Info().Msgf("Found streamdeck: %+v", deckDevice)
 
 	// Meet Mutes
-	meetPlugin, err := googlemeet.NewGoogleMeetPlugin(deckDevice)
+	meetPlugin, err := googlemeet.NewGoogleMeetPlugin(
+		deckDevice,
+		config.GetDefault("googlemeet", &toml.Tree{}).(*toml.Tree))
 	if err != nil {
-		log.Error().Msgf("failed to initialize googlemeet plugin: %s", err)
+		log.Fatal().Msgf("failed to initialize googlemeet plugin: %s", err)
 	}
 	deckDevice.AddButton(0, meetPlugin.VideoMuteButton)
 	deckDevice.AddButton(5, meetPlugin.MuteButton)
@@ -56,7 +58,10 @@ func main() {
 	if err != nil {
 		log.Warn().Msgf("failed to parse obswebsocket configuration: %s", err)
 	}
-	obsPlugin := obswebsocket.New(deckDevice, configstruct)
+	obsPlugin, err := obswebsocket.New(deckDevice, configstruct)
+	if err != nil {
+		log.Fatal().Msgf("failed to initialize obswebsocket plugin: %s", err)
+	}
 	scene1 := obsPlugin.NewSceneButton("webcam")
 	deckDevice.AddButton(4, scene1)
 	scene2, err := buttons.NewImageFileButton("images/teapod-sad.png")

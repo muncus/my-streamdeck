@@ -4,3 +4,6 @@
 host = "localhost"
 port = 4444
 password = "blank"
+
+[googlemeet]
+switch_to_window = true
