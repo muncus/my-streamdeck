@@ -49,7 +49,7 @@ func main() {
 		log.Fatal().Msgf("Failed to open Stream Deck: %s", err)
 		os.Exit(1)
 	}
-	log.Info().Msgf("Found streamdeck: %+v", deckDevice)
+	log.Debug().Msgf("Found streamdeck: %+v", deckDevice)
 
 	// Meet Mutes
 	meetPlugin, err := googlemeet.NewGoogleMeetPlugin(
@@ -91,6 +91,6 @@ func main() {
 }
 
 func cleanup() {
-	log.Info().Msg("Cleaning up...")
+	log.Debug().Msg("Cleaning up...")
 	plugins.ClearButtons(deckDevice)
 }
