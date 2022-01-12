@@ -25,7 +25,7 @@ var disabledButtonDecorator streamdeck.ButtonDecorator = decorators.NewBorder(15
 var Logger zerolog.Logger = log.Logger.With().Str("plugin", "obswebsocket").Logger().Output(zerolog.ConsoleWriter{Out: os.Stdout})
 
 func init() {
-	obsws.Logger.SetOutput(Logger)
+	obsws.Logger.SetOutput(Logger.With().Str("level", "debug").Logger())
 }
 
 // OBSPluginConfig describes valid config options that can be specified for this plugin
@@ -58,7 +58,7 @@ func New(d *streamdeck.StreamDeck, config *toml.Tree) (*OBSPlugin, error) {
 			Port:     configstruct.Port,
 			Password: configstruct.Password,
 		},
-		ticker:  time.NewTicker(10 * time.Second),
+		ticker:  time.NewTicker(5 * time.Second),
 		quitter: make(chan bool),
 	}
 	obsws.SetReceiveTimeout(5 * time.Second)
