@@ -36,7 +36,7 @@ type OBSPlugin struct {
 
 func New(d *streamdeck.StreamDeck, config *toml.Tree) (*OBSPlugin, error) {
 	configstruct := &OBSPluginConfig{}
-	err := toml.Unmarshal([]byte(config.Get("obswebsocket").(*toml.Tree).String()), configstruct)
+	err := toml.Unmarshal([]byte(config.String()), configstruct)
 	if err != nil {
 		return &OBSPlugin{}, fmt.Errorf("failed to parse OBS config: %w", err)
 	}
@@ -56,7 +56,7 @@ func New(d *streamdeck.StreamDeck, config *toml.Tree) (*OBSPlugin, error) {
 // connect to the obs websocket, and activate buttons.
 func (p *OBSPlugin) connect() {
 	p.client.Connect()
-	fmt.Println("Connected.")
+	log.Debug().Msg("Connected.")
 	p.setButtonsEnabled(p.client.Connected())
 }
 

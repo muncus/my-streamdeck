@@ -1,4 +1,4 @@
-# lolwtfbbq
+# Plugin configuration for streamdeck
 
 [obswebsocket]
 host = "localhost"

@@ -53,7 +53,9 @@ func main() {
 	deckDevice.AddButton(10, meetPlugin.RaiseHandButton)
 
 	// OBS Plugin
-	obsPlugin, err := obswebsocket.New(deckDevice, config.Get("obswebsocket").(*toml.Tree))
+	obsPlugin, err := obswebsocket.New(
+		deckDevice,
+		config.GetDefault("obswebsocket", &toml.Tree{}).(*toml.Tree))
 	if err != nil {
 		log.Fatal().Msgf("failed to initialize obswebsocket plugin: %s", err)
 	}
