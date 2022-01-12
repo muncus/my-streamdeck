@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"syscall"
 
 	streamdeck "github.com/magicmonkey/go-streamdeck"
 	"github.com/magicmonkey/go-streamdeck/buttons"
@@ -21,8 +22,12 @@ import (
 var deckDevice *streamdeck.StreamDeck
 var configFile = flag.String("config", "", "Config file, in yaml format")
 
-func main() {
+func init() {
+	// set up logger
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+}
+
+func main() {
 	var err error
 
 	flag.Parse()
@@ -67,11 +72,12 @@ func main() {
 		log.Fatal().Msgf("Could not create Image button: %s", err)
 	}
 	scene2.SetActionHandler(obsPlugin.NewSceneChangeAction("sad-teapot"))
+	obsPlugin.ManageButton(scene2)
 	deckDevice.AddButton(9, scene2)
 
 	// Gracefully exit on interrupt, clearing buttons.
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
 	select {
 	case <-c:

@@ -5,6 +5,7 @@ package obswebsocket
 import (
 	"fmt"
 	"image/color"
+	"os"
 	"time"
 
 	obsws "github.com/christopher-dG/go-obs-websocket"
@@ -15,11 +16,17 @@ import (
 	"github.com/muncus/my-streamdeck/plugins"
 	"github.com/pelletier/go-toml"
 
-	_ "github.com/rs/zerolog"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
+// A shared ButtonDecorator used to indicate that the button will not function.
 var disabledButtonDecorator streamdeck.ButtonDecorator = decorators.NewBorder(15, color.RGBA{255, 0, 0, 150})
+var Logger zerolog.Logger = log.Logger.With().Str("plugin", "obswebsocket").Logger().Output(zerolog.ConsoleWriter{Out: os.Stdout})
+
+func init() {
+	obsws.Logger.SetOutput(Logger)
+}
 
 // OBSPluginConfig describes valid config options that can be specified for this plugin
 type OBSPluginConfig struct {
@@ -36,6 +43,8 @@ type OBSPlugin struct {
 	quitter      chan bool
 }
 
+// New creates a new instance of the OBS plugin, to display on the given streamdeck.
+// config may contain fields from OBSPluginConfig.
 func New(d *streamdeck.StreamDeck, config *toml.Tree) (*OBSPlugin, error) {
 	configstruct := &OBSPluginConfig{}
 	err := toml.Unmarshal([]byte(config.String()), configstruct)
@@ -53,7 +62,7 @@ func New(d *streamdeck.StreamDeck, config *toml.Tree) (*OBSPlugin, error) {
 		quitter: make(chan bool),
 	}
 	obsws.SetReceiveTimeout(5 * time.Second)
-	go plugin.connect()
+	plugin.connect()
 	go plugin.watchConnectionState()
 	return plugin, nil
 }
@@ -63,29 +72,25 @@ func (p *OBSPlugin) watchConnectionState() {
 	for {
 		select {
 		case <-p.ticker.C:
-			log.Debug().Msg("updating button state")
-			p.setButtonsEnabled(p.client.Connected())
+			p.connect()
 		case <-p.quitter:
-			log.Debug().Msg("exiting connection watch routine")
 			return
 		}
 	}
 }
 
-func (p *OBSPlugin) Close() {
-	close(p.quitter)
-}
-
 // connect to the obs websocket, and activate buttons.
 func (p *OBSPlugin) connect() {
-	p.client.Connect()
-	log.Debug().Msg("Connected.")
 	p.setButtonsEnabled(p.client.Connected())
+	if !p.client.Connected() {
+		p.client.Connect()
+		p.setButtonsEnabled(p.client.Connected())
+	}
 }
 
-// TODO: use a mechanic like this to disable OBS buttons when we're not connected to obs.
+// setButtonsEnabled marks buttons as disabled when not connected to an OBS instance.
 func (p *OBSPlugin) setButtonsEnabled(enabled bool) {
-	if enabled {
+	if !enabled {
 		for _, b := range p.ownedButtons {
 			p.d.SetDecorator(b.GetButtonIndex(), disabledButtonDecorator)
 		}
@@ -101,6 +106,7 @@ func (p *OBSPlugin) setButtonsEnabled(enabled bool) {
 func (p *OBSPlugin) NewSceneButton(scenename string) plugins.ActionButton {
 	btn := buttons.NewTextButton(scenename)
 	btn.SetActionHandler(p.NewSceneChangeAction(scenename))
+	p.ownedButtons = append(p.ownedButtons, btn)
 	return btn
 }
 
@@ -110,10 +116,21 @@ func (p *OBSPlugin) NewSceneChangeAction(scene string) streamdeck.ButtonActionHa
 		req := obsws.NewSetCurrentSceneRequest(scene)
 		resp, err := req.SendReceive(*p.client)
 		if err != nil {
-			log.Warn().Err(err)
+			Logger.Warn().Err(err)
 			return
 		}
-		log.Info().Msg(resp.Status())
+		Logger.Info().Msg(resp.Status())
 	})
 	return a
+}
+
+// ManageButton lets this plugin decorate the given button on connect/disconnect.
+// It is intended for buttons whose actions depend on OBSPlugin being connected to OBS, but were not constructed with New*Button methods.
+func (p *OBSPlugin) ManageButton(b plugins.ActionButton) {
+	p.ownedButtons = append(p.ownedButtons, b)
+}
+
+// Close should be called when exiting. it cleans up background goroutines.
+func (p *OBSPlugin) Close() {
+	close(p.quitter)
 }
