@@ -1,5 +1,0 @@
-# Yaml to configure streamdeck, including plugins.
-obswebsocket:
-  host: "localhost"
-  port: 4444
-  password: "blank"
