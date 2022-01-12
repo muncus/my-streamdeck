@@ -32,6 +32,8 @@ type OBSPlugin struct {
 	d            *streamdeck.StreamDeck
 	client       *obsws.Client
 	ownedButtons []plugins.ActionButton // track all buttons we own, so they can be enabled/disabled
+	ticker       *time.Ticker
+	quitter      chan bool
 }
 
 func New(d *streamdeck.StreamDeck, config *toml.Tree) (*OBSPlugin, error) {
@@ -47,10 +49,31 @@ func New(d *streamdeck.StreamDeck, config *toml.Tree) (*OBSPlugin, error) {
 			Port:     configstruct.Port,
 			Password: configstruct.Password,
 		},
+		ticker:  time.NewTicker(10 * time.Second),
+		quitter: make(chan bool),
 	}
 	obsws.SetReceiveTimeout(5 * time.Second)
 	go plugin.connect()
+	go plugin.watchConnectionState()
 	return plugin, nil
+}
+
+// watchConnectionState updates button appearance when we connect/disconnect from OBS
+func (p *OBSPlugin) watchConnectionState() {
+	for {
+		select {
+		case <-p.ticker.C:
+			log.Debug().Msg("updating button state")
+			p.setButtonsEnabled(p.client.Connected())
+		case <-p.quitter:
+			log.Debug().Msg("exiting connection watch routine")
+			return
+		}
+	}
+}
+
+func (p *OBSPlugin) Close() {
+	close(p.quitter)
 }
 
 // connect to the obs websocket, and activate buttons.
