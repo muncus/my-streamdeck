@@ -53,12 +53,7 @@ func main() {
 	deckDevice.AddButton(10, meetPlugin.RaiseHandButton)
 
 	// OBS Plugin
-	configstruct := &obswebsocket.OBSPluginConfig{}
-	err = toml.Unmarshal([]byte(config.Get("obswebsocket").(*toml.Tree).String()), configstruct)
-	if err != nil {
-		log.Warn().Msgf("failed to parse obswebsocket configuration: %s", err)
-	}
-	obsPlugin, err := obswebsocket.New(deckDevice, configstruct)
+	obsPlugin, err := obswebsocket.New(deckDevice, config.Get("obswebsocket").(*toml.Tree))
 	if err != nil {
 		log.Fatal().Msgf("failed to initialize obswebsocket plugin: %s", err)
 	}

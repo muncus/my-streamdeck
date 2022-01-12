@@ -13,6 +13,7 @@ import (
 	"github.com/magicmonkey/go-streamdeck/buttons"
 	"github.com/magicmonkey/go-streamdeck/decorators"
 	"github.com/muncus/my-streamdeck/plugins"
+	"github.com/pelletier/go-toml"
 
 	_ "github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -33,14 +34,18 @@ type OBSPlugin struct {
 	ownedButtons []plugins.ActionButton // track all buttons we own, so they can be enabled/disabled
 }
 
-func New(d *streamdeck.StreamDeck, config *OBSPluginConfig) (*OBSPlugin, error) {
+func New(d *streamdeck.StreamDeck, config *toml.Tree) (*OBSPlugin, error) {
+	configstruct := &OBSPluginConfig{}
+	err := toml.Unmarshal([]byte(config.Get("obswebsocket").(*toml.Tree).String()), configstruct)
+	if err != nil {
+		return &OBSPlugin{}, fmt.Errorf("failed to parse OBS config: %w", err)
+	}
 	plugin := &OBSPlugin{
 		d: d,
-		// TODO: define config better. as a struct.
 		client: &obsws.Client{
-			Host:     config.Host,
-			Port:     config.Port,
-			Password: config.Password,
+			Host:     configstruct.Host,
+			Port:     configstruct.Port,
+			Password: configstruct.Password,
 		},
 	}
 	obsws.SetReceiveTimeout(5 * time.Second)
