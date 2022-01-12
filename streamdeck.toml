@@ -1,0 +1,6 @@
+# lolwtfbbq
+
+[obswebsocket]
+host = "localhost"
+port = 4444
+password = "blank"

@@ -13,9 +13,9 @@ import (
 	"github.com/muncus/my-streamdeck/plugins"
 	"github.com/muncus/my-streamdeck/plugins/googlemeet"
 	"github.com/muncus/my-streamdeck/plugins/obswebsocket"
+	"github.com/pelletier/go-toml"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v2"
 )
 
 var deckDevice *streamdeck.StreamDeck
@@ -29,15 +29,9 @@ func main() {
 
 	// load a config file.
 	abspath, _ := filepath.Abs(*configFile)
-	configbytes, err := os.ReadFile(abspath)
+	config, err := toml.LoadFile(abspath)
 	if err != nil {
 		log.Fatal().Msgf("failed to read config file (%s): %s", configFile, err)
-	}
-	configstruct := make(map[string]map[string]string)
-
-	err = yaml.Unmarshal(configbytes, &configstruct)
-	if err != nil {
-		log.Fatal().Msgf("failed to parse config file (%s): %s", configFile, err)
 	}
 
 	deckDevice, err = streamdeck.New()
@@ -57,8 +51,12 @@ func main() {
 	deckDevice.AddButton(10, meetPlugin.RaiseHandButton)
 
 	// OBS Plugin
-	pluginconfig := configstruct["obswebsocket"]
-	obsPlugin := obswebsocket.New(deckDevice, pluginconfig)
+	configstruct := &obswebsocket.OBSPluginConfig{}
+	err = toml.Unmarshal([]byte(config.Get("obswebsocket").(*toml.Tree).String()), configstruct)
+	if err != nil {
+		log.Warn().Msgf("failed to parse obswebsocket configuration: %s", err)
+	}
+	obsPlugin := obswebsocket.New(deckDevice, configstruct)
 	scene1 := obsPlugin.NewSceneButton("webcam")
 	deckDevice.AddButton(4, scene1)
 	scene2, err := buttons.NewImageFileButton("images/teapod-sad.png")
