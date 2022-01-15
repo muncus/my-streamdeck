@@ -13,6 +13,7 @@ import (
 	_ "github.com/magicmonkey/go-streamdeck/devices"
 	"github.com/muncus/my-streamdeck/plugins"
 	"github.com/muncus/my-streamdeck/plugins/googlemeet"
+	"github.com/muncus/my-streamdeck/plugins/keylight"
 	"github.com/muncus/my-streamdeck/plugins/obswebsocket"
 	"github.com/pelletier/go-toml"
 	"github.com/rs/zerolog"
@@ -79,6 +80,12 @@ func main() {
 	scene2.SetActionHandler(obsPlugin.NewSceneChangeAction("sad-teapot"))
 	obsPlugin.ManageButton(scene2)
 	deckDevice.AddButton(9, scene2)
+
+	// keylights
+	lightPlugin := keylight.New(deckDevice)
+	deckDevice.AddButton(2, lightPlugin.PowerToggle)
+	deckDevice.AddButton(7, lightPlugin.BrightnessInc)
+	deckDevice.AddButton(12, lightPlugin.BrightnessDec)
 
 	// Gracefully exit on interrupt, clearing buttons.
 	c := make(chan os.Signal, 1)
