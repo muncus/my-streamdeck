@@ -1,6 +1,7 @@
 package googlemeet
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 
@@ -28,7 +29,6 @@ func NewGoogleMeetPlugin(d *streamdeck.StreamDeck, config *toml.Tree) (*GoogleMe
 	} else {
 		p.windowCommand = "windowfocus"
 	}
-	log.Debug().Msg(config.String())
 	p.MuteButton, err = buttons.NewImageFileButton("images/mic.png")
 	if err != nil {
 		return &GoogleMeetPlugin{}, fmt.Errorf("failed to create image button: %s", err)
@@ -38,11 +38,7 @@ func NewGoogleMeetPlugin(d *streamdeck.StreamDeck, config *toml.Tree) (*GoogleMe
 	// The Meet "home page" is titled "Google Meet", and will not match this pattern.
 	p.MuteButton.SetActionHandler(actionhandlers.NewCustomAction(func(streamdeck.Button) {
 		cmd := exec.Command("xdotool", "search", "--name", "Meet - *", p.windowCommand, "key", "ctrl+d")
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			log.Debug().Msg(string(output))
-			log.Debug().Msgf("%#v", err)
-		}
+		commandAction(cmd)
 	}))
 
 	// Video Mute.
@@ -52,11 +48,7 @@ func NewGoogleMeetPlugin(d *streamdeck.StreamDeck, config *toml.Tree) (*GoogleMe
 	}
 	p.VideoMuteButton.SetActionHandler(actionhandlers.NewCustomAction(func(streamdeck.Button) {
 		cmd := exec.Command("xdotool", "search", "--name", "Meet - *", p.windowCommand, "key", "ctrl+e")
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			log.Debug().Msg(string(output))
-			log.Debug().Msgf("%#v", err)
-		}
+		commandAction(cmd)
 	}))
 
 	// Raise hand
@@ -66,12 +58,19 @@ func NewGoogleMeetPlugin(d *streamdeck.StreamDeck, config *toml.Tree) (*GoogleMe
 	}
 	p.RaiseHandButton.SetActionHandler(actionhandlers.NewCustomAction(func(streamdeck.Button) {
 		cmd := exec.Command("xdotool", "search", "--name", "Meet - *", p.windowCommand, "key", "ctrl+alt+h")
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			log.Debug().Msg(string(output))
-			log.Debug().Msgf("%#v", err)
-		}
+		commandAction(cmd)
 	}))
 
 	return p, nil
+}
+
+func commandAction(cmd *exec.Cmd) {
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		exitErr := &exec.ExitError{}
+		if errors.As(err, &exitErr) {
+			log.Error().Err(err).Msgf("command exited %d: %s", exitErr.ExitCode(), exitErr.Stderr)
+		}
+		log.Error().Err(err).Msg(string(output))
+	}
 }
