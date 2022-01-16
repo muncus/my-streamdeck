@@ -3,6 +3,7 @@ package plugins
 import (
 	"fmt"
 	"image"
+	"log"
 	"os"
 
 	"github.com/disintegration/gift"
@@ -14,6 +15,7 @@ type ImageButton struct {
 	action   streamdeck.ButtonActionHandler
 	Size     *image.Point
 	btnIndex int
+	active   bool
 }
 
 func NewImageButtonFromFile(fname string) (*ImageButton, error) {
@@ -26,7 +28,8 @@ func NewImageButtonFromFile(fname string) (*ImageButton, error) {
 
 func NewImageButton(im image.Image) *ImageButton {
 	ib := &ImageButton{
-		Size: &image.Point{X: 72, Y: 72},
+		Size:   &image.Point{X: 72, Y: 72},
+		active: true,
 	}
 	ib.SetImage(im)
 	return ib
@@ -44,12 +47,14 @@ func (b *ImageButton) SetImage(i image.Image) {
 
 // ButtonDisplay interface methods.
 func (b *ImageButton) GetImageForButton(btnSize int) image.Image {
-	if btnSize == b.Size.X {
-		return b.img
-	}
+	log.Printf("Button image for: %#v", b)
 	resizer := gift.New(
 		gift.Resize(b.Size.X, b.Size.Y, gift.LanczosResampling),
 	)
+	// Gray out inactive buttons.
+	if !b.IsActive() {
+		resizer.Add(gift.Contrast(-70))
+	}
 	dst := image.NewRGBA(resizer.Bounds(b.img.Bounds()))
 	resizer.Draw(dst, b.img)
 	return dst
@@ -69,6 +74,13 @@ func (b *ImageButton) Pressed() {
 // ActionButton interface
 func (b *ImageButton) SetActionHandler(act streamdeck.ButtonActionHandler) {
 	b.action = act
+}
+
+func (b *ImageButton) IsActive() bool {
+	return b.active
+}
+func (b *ImageButton) SetActive(active bool) {
+	b.active = active
 }
 
 // NewImageFromFile
