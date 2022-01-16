@@ -93,14 +93,17 @@ func (p *OBSPlugin) connect() {
 }
 
 // setButtonsEnabled marks buttons as disabled when not connected to an OBS instance.
+// FIXME: decorator use is currently disabled, as it causes some visual artifacts.
 func (p *OBSPlugin) setButtonsEnabled(enabled bool) {
 	if !enabled {
 		for _, b := range p.ownedButtons {
-			p.d.SetDecorator(b.GetButtonIndex(), disabledButtonDecorator)
+			_ = b
+			// p.d.SetDecorator(b.GetButtonIndex(), disabledButtonDecorator)
 		}
 	} else {
 		for _, b := range p.ownedButtons {
-			p.d.UnsetDecorator(b.GetButtonIndex())
+			_ = b
+			// p.d.UnsetDecorator(b.GetButtonIndex())
 		}
 	}
 }

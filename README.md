@@ -33,6 +33,10 @@ temperature will come eventually, but is not a major need for me.
 
 ## Progress Notes
 
+- use of Decorators in the streamdeck library leads to image corruption on the
+deck. this may suggest we should switch to either the low-level interface, or a
+different library for streamdeck communications.
+
 ### Button Actions
 * To toggle mute in Google Meet:
     `xdotool search -name "Meet *" key ctrl+d`

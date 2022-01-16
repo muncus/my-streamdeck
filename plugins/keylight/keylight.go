@@ -21,6 +21,8 @@ type KeylightPlugin struct {
 	d               *streamdeck.StreamDeck
 	light           *kl.Device
 	ready           bool
+	quitter         chan (bool)
+	ticker          time.Ticker
 	brightIncrement int
 	tempIncrement   int
 	PowerToggle     plugins.ActionButton
@@ -34,9 +36,9 @@ func New(d *streamdeck.StreamDeck) *KeylightPlugin {
 		d:               d,
 		brightIncrement: 10,
 		tempIncrement:   1,
+		ticker:          *time.NewTicker(10 * time.Second),
+		quitter:         make(chan bool),
 	}
-	// run discovery in a background goroutine.
-	go plugin.prepare()
 
 	// plugin.PowerToggle = buttons.NewTextButton("aziz, light!")
 	plugin.PowerToggle, _ = buttons.NewImageFileButton("images/light_mode_bg.png")
@@ -58,10 +60,44 @@ func New(d *streamdeck.StreamDeck) *KeylightPlugin {
 		l.Brightness = l.Brightness - plugin.brightIncrement
 	}))
 
+	// plugin.setButtonsEnabled(false)
+	// run discovery in a background goroutine.
+	go plugin.watchButtonState()
+
 	return plugin
 }
 
-func (p *KeylightPlugin) prepare() error {
+// watchButtonState runs forever, updating owned buttons with a disabled decorator.
+func (p *KeylightPlugin) watchButtonState() {
+	for {
+		select {
+		case <-p.ticker.C:
+			if p.light == nil {
+				// no lights found yet. disable.
+				p.setButtonsEnabled(false)
+				p.discover()
+			} else {
+				p.setButtonsEnabled(true)
+			}
+		case <-p.quitter:
+			return
+		}
+	}
+}
+
+func (p *KeylightPlugin) setButtonsEnabled(enabled bool) {
+	if enabled {
+		p.PowerToggle.(*buttons.ImageFileButton).SetFilePath("images/light_mode_bg.png")
+		p.BrightnessInc.(*buttons.ImageFileButton).SetFilePath("images/more_bright_bg.png")
+		p.BrightnessDec.(*buttons.ImageFileButton).SetFilePath("images/less_bright_bg.png")
+	} else {
+		for _, b := range []plugins.ActionButton{p.PowerToggle, p.BrightnessDec, p.BrightnessInc} {
+			b.(*buttons.ImageFileButton).SetFilePath("images/pending_bg.png")
+		}
+	}
+}
+
+func (p *KeylightPlugin) discover() error {
 	Logger.Debug().Msg("starting discovery")
 	disc, err := kl.NewDiscovery()
 	if err != nil {
