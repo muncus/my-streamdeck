@@ -71,8 +71,14 @@ func main() {
 		log.Fatal().Msgf("failed to initialize obswebsocket plugin: %s", err)
 	}
 	defer obsPlugin.Close()
-	scene1 := obsPlugin.NewSceneButton("webcam")
+	scene1, err := buttons.NewImageFileButton("images/webcam_bg.png")
+	if err != nil {
+		log.Fatal().Msgf("Could not create Image button: %s", err)
+	}
+	scene1.SetActionHandler(obsPlugin.NewSceneChangeAction("webcam"))
+	obsPlugin.ManageButton(scene1)
 	deckDevice.AddButton(4, scene1)
+
 	scene2, err := buttons.NewImageFileButton("images/teapod-sad.png")
 	if err != nil {
 		log.Fatal().Msgf("Could not create Image button: %s", err)

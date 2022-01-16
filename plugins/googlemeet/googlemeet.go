@@ -29,7 +29,7 @@ func NewGoogleMeetPlugin(d *streamdeck.StreamDeck, config *toml.Tree) (*GoogleMe
 	} else {
 		p.windowCommand = "windowfocus"
 	}
-	p.MuteButton, err = buttons.NewImageFileButton("images/mic.png")
+	p.MuteButton, err = buttons.NewImageFileButton("images/microphone_bg.png")
 	if err != nil {
 		return &GoogleMeetPlugin{}, fmt.Errorf("failed to create image button: %s", err)
 	}
@@ -42,7 +42,7 @@ func NewGoogleMeetPlugin(d *streamdeck.StreamDeck, config *toml.Tree) (*GoogleMe
 	}))
 
 	// Video Mute.
-	p.VideoMuteButton, err = buttons.NewImageFileButton("images/camera.png")
+	p.VideoMuteButton, err = buttons.NewImageFileButton("images/camera_toggle_bg.png")
 	if err != nil {
 		return &GoogleMeetPlugin{}, fmt.Errorf("failed to create image button: %s", err)
 	}
@@ -52,7 +52,7 @@ func NewGoogleMeetPlugin(d *streamdeck.StreamDeck, config *toml.Tree) (*GoogleMe
 	}))
 
 	// Raise hand
-	p.RaiseHandButton, err = buttons.NewImageFileButton("images/hand.png")
+	p.RaiseHandButton, err = buttons.NewImageFileButton("images/hand_transparent_bg.png")
 	if err != nil {
 		return &GoogleMeetPlugin{}, fmt.Errorf("failed to create image button: %s", err)
 	}
