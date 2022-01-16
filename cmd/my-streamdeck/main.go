@@ -93,6 +93,14 @@ func main() {
 	deckDevice.AddButton(7, lightPlugin.BrightnessInc)
 	deckDevice.AddButton(12, lightPlugin.BrightnessDec)
 
+	// test imageButton
+	ib, err := plugins.NewImageButtonFromFile("images/pending_bg.png")
+	if err != nil {
+		log.Fatal().Err(err)
+	}
+	log.Debug().Msgf("button: %#v", ib)
+	deckDevice.AddButton(3, ib)
+
 	// Gracefully exit on interrupt, clearing buttons.
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
