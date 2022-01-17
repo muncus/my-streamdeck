@@ -3,17 +3,17 @@
 package obswebsocket
 
 import (
+	"errors"
 	"fmt"
-	"image/color"
 	"io"
 	"os"
+	"os/exec"
 	"time"
 
 	obsws "github.com/christopher-dG/go-obs-websocket"
 	"github.com/magicmonkey/go-streamdeck"
 	"github.com/magicmonkey/go-streamdeck/actionhandlers"
 	"github.com/magicmonkey/go-streamdeck/buttons"
-	"github.com/magicmonkey/go-streamdeck/decorators"
 	"github.com/muncus/my-streamdeck/plugins"
 	"github.com/pelletier/go-toml"
 
@@ -22,7 +22,6 @@ import (
 )
 
 // A shared ButtonDecorator used to indicate that the button will not function.
-var disabledButtonDecorator streamdeck.ButtonDecorator = decorators.NewBorder(15, color.RGBA{255, 0, 0, 150})
 var Logger zerolog.Logger = log.Logger.With().Str("plugin", "obswebsocket").Logger().Output(zerolog.ConsoleWriter{Out: os.Stdout})
 
 // OBSPluginConfig describes valid config options that can be specified for this plugin
@@ -93,17 +92,11 @@ func (p *OBSPlugin) connect() {
 }
 
 // setButtonsEnabled marks buttons as disabled when not connected to an OBS instance.
-// FIXME: decorator use is currently disabled, as it causes some visual artifacts.
+// This only works when the Button is a subclass of plugins.ImageButton.
 func (p *OBSPlugin) setButtonsEnabled(enabled bool) {
-	if !enabled {
-		for _, b := range p.ownedButtons {
-			_ = b
-			// p.d.SetDecorator(b.GetButtonIndex(), disabledButtonDecorator)
-		}
-	} else {
-		for _, b := range p.ownedButtons {
-			_ = b
-			// p.d.UnsetDecorator(b.GetButtonIndex())
+	for _, b := range p.ownedButtons {
+		if ib, ok := b.(*plugins.ImageButton); ok {
+			ib.SetActive(enabled)
 		}
 	}
 }
@@ -129,6 +122,20 @@ func (p *OBSPlugin) NewSceneChangeAction(scene string) streamdeck.ButtonActionHa
 		Logger.Info().Msg(resp.Status())
 	})
 	return a
+}
+
+func (p *OBSPlugin) LaunchOBSAction() streamdeck.ButtonActionHandler {
+	return actionhandlers.NewCustomAction(func(streamdeck.Button) {
+		obscmd := exec.Command("obs", "--startvirtualcam")
+		output, err := obscmd.CombinedOutput()
+		if err != nil {
+			exitErr := &exec.ExitError{}
+			if errors.As(err, &exitErr) {
+				log.Error().Err(err).Msgf("command exited %d: %s", exitErr.ExitCode(), exitErr.Stderr)
+			}
+			log.Error().Err(err).Msg(string(output))
+		}
+	})
 }
 
 // ManageButton lets this plugin decorate the given button on connect/disconnect.

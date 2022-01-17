@@ -9,7 +9,6 @@ import (
 	"syscall"
 
 	streamdeck "github.com/magicmonkey/go-streamdeck"
-	"github.com/magicmonkey/go-streamdeck/buttons"
 	_ "github.com/magicmonkey/go-streamdeck/devices"
 	"github.com/muncus/my-streamdeck/plugins"
 	"github.com/muncus/my-streamdeck/plugins/googlemeet"
@@ -71,7 +70,7 @@ func main() {
 		log.Fatal().Msgf("failed to initialize obswebsocket plugin: %s", err)
 	}
 	defer obsPlugin.Close()
-	scene1, err := buttons.NewImageFileButton("images/webcam_bg.png")
+	scene1, err := plugins.NewImageButtonFromFile("images/webcam_bg.png")
 	if err != nil {
 		log.Fatal().Msgf("Could not create Image button: %s", err)
 	}
@@ -79,7 +78,7 @@ func main() {
 	obsPlugin.ManageButton(scene1)
 	deckDevice.AddButton(4, scene1)
 
-	scene2, err := buttons.NewImageFileButton("images/teapod-sad.png")
+	scene2, err := plugins.NewImageButtonFromFile("images/teapod-sad.png")
 	if err != nil {
 		log.Fatal().Msgf("Could not create Image button: %s", err)
 	}
@@ -87,19 +86,19 @@ func main() {
 	obsPlugin.ManageButton(scene2)
 	deckDevice.AddButton(9, scene2)
 
+	//NB: this button is not managed by the OBSPlugin, because it should not be disabled when obs is inactive.
+	obsbtn, err := plugins.NewImageButtonFromFile("images/obs.png")
+	if err != nil {
+		log.Fatal().Msgf("Could not create Image button: %s", err)
+	}
+	obsbtn.SetActionHandler(obsPlugin.LaunchOBSAction())
+	deckDevice.AddButton(14, obsbtn)
+
 	// keylights
 	lightPlugin := keylight.New(deckDevice)
 	deckDevice.AddButton(2, lightPlugin.PowerToggle)
 	deckDevice.AddButton(7, lightPlugin.BrightnessInc)
 	deckDevice.AddButton(12, lightPlugin.BrightnessDec)
-
-	// test imageButton
-	ib, err := plugins.NewImageButtonFromFile("images/pending_bg.png")
-	if err != nil {
-		log.Fatal().Err(err)
-	}
-	log.Debug().Msgf("button: %#v", ib)
-	deckDevice.AddButton(3, ib)
 
 	// Gracefully exit on interrupt, clearing buttons.
 	c := make(chan os.Signal, 1)
