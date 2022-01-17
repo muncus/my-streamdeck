@@ -3,7 +3,6 @@ package plugins
 import (
 	"fmt"
 	"image"
-	"log"
 	"os"
 
 	"github.com/disintegration/gift"
@@ -50,7 +49,6 @@ func (b *ImageButton) SetImage(i image.Image) {
 
 // ButtonDisplay interface methods.
 func (b *ImageButton) GetImageForButton(btnSize int) image.Image {
-	log.Printf("Button image for: %#v", b)
 	resizer := gift.New(
 		gift.Resize(b.Size.X, b.Size.Y, gift.LanczosResampling),
 	)
