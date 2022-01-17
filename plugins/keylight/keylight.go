@@ -35,7 +35,7 @@ func New(d *streamdeck.StreamDeck) *KeylightPlugin {
 		d:               d,
 		brightIncrement: 10,
 		tempIncrement:   1,
-		ticker:          *time.NewTicker(10 * time.Second),
+		ticker:          *time.NewTicker(5 * time.Second),
 		quitter:         make(chan bool),
 	}
 
@@ -96,7 +96,7 @@ func (p *KeylightPlugin) discover() error {
 	if err != nil {
 		return err
 	}
-	dctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	dctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	err = disc.Run(dctx)
 	if err != nil {
@@ -112,7 +112,7 @@ func (p *KeylightPlugin) discover() error {
 // LightAction helps construct button actions that operate onall lights in a given LightGroup
 func (p *KeylightPlugin) LightAction(lightfunc func(l *kl.Light)) streamdeck.ButtonActionHandler {
 	return actionhandlers.NewCustomAction(func(streamdeck.Button) {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		lg, err := p.light.FetchLightGroup(ctx)
 		Logger.Debug().Msgf("LightGroup: %#v", lg)
@@ -123,7 +123,7 @@ func (p *KeylightPlugin) LightAction(lightfunc func(l *kl.Light)) streamdeck.But
 		for _, l := range lg.Lights {
 			lightfunc(l)
 		}
-		ctx, cancel = context.WithTimeout(context.Background(), 30*time.Second)
+		ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		Logger.Debug().Msgf("Updating: %#v , %#v", lg, lg.Lights[0])
 		_, err = p.light.UpdateLightGroup(ctx, lg)
