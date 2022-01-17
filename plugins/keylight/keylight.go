@@ -9,7 +9,6 @@ import (
 	kl "github.com/endocrimes/keylight-go"
 	"github.com/magicmonkey/go-streamdeck"
 	"github.com/magicmonkey/go-streamdeck/actionhandlers"
-	"github.com/magicmonkey/go-streamdeck/buttons"
 	"github.com/muncus/my-streamdeck/plugins"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -25,9 +24,9 @@ type KeylightPlugin struct {
 	ticker          time.Ticker
 	brightIncrement int
 	tempIncrement   int
-	PowerToggle     plugins.ActionButton
-	BrightnessInc   plugins.ActionButton
-	BrightnessDec   plugins.ActionButton
+	PowerToggle     *plugins.ImageButton
+	BrightnessInc   *plugins.ImageButton
+	BrightnessDec   *plugins.ImageButton
 }
 
 func New(d *streamdeck.StreamDeck) *KeylightPlugin {
@@ -41,7 +40,7 @@ func New(d *streamdeck.StreamDeck) *KeylightPlugin {
 	}
 
 	// plugin.PowerToggle = buttons.NewTextButton("aziz, light!")
-	plugin.PowerToggle, _ = buttons.NewImageFileButton("images/light_mode_bg.png")
+	plugin.PowerToggle, _ = plugins.NewImageButtonFromFile("images/light_mode_bg.png")
 	plugin.PowerToggle.SetActionHandler(plugin.LightAction(func(l *kl.Light) {
 		if l.On > 0 {
 			l.On = 0
@@ -51,16 +50,16 @@ func New(d *streamdeck.StreamDeck) *KeylightPlugin {
 	}))
 
 	// TODO: add a min/max to these values.
-	plugin.BrightnessInc, _ = buttons.NewImageFileButton("images/more_bright_bg.png")
+	plugin.BrightnessInc, _ = plugins.NewImageButtonFromFile("images/more_bright_bg.png")
 	plugin.BrightnessInc.SetActionHandler(plugin.LightAction(func(l *kl.Light) {
 		l.Brightness = l.Brightness + plugin.brightIncrement
 	}))
-	plugin.BrightnessDec, _ = buttons.NewImageFileButton("images/less_bright_bg.png")
+	plugin.BrightnessDec, _ = plugins.NewImageButtonFromFile("images/less_bright_bg.png")
 	plugin.BrightnessDec.SetActionHandler(plugin.LightAction(func(l *kl.Light) {
 		l.Brightness = l.Brightness - plugin.brightIncrement
 	}))
 
-	// plugin.setButtonsEnabled(false)
+	plugin.setButtonsEnabled(false)
 	// run discovery in a background goroutine.
 	go plugin.watchButtonState()
 
@@ -86,15 +85,9 @@ func (p *KeylightPlugin) watchButtonState() {
 }
 
 func (p *KeylightPlugin) setButtonsEnabled(enabled bool) {
-	if enabled {
-		p.PowerToggle.(*buttons.ImageFileButton).SetFilePath("images/light_mode_bg.png")
-		p.BrightnessInc.(*buttons.ImageFileButton).SetFilePath("images/more_bright_bg.png")
-		p.BrightnessDec.(*buttons.ImageFileButton).SetFilePath("images/less_bright_bg.png")
-	} else {
-		for _, b := range []plugins.ActionButton{p.PowerToggle, p.BrightnessDec, p.BrightnessInc} {
-			b.(*buttons.ImageFileButton).SetFilePath("images/pending_bg.png")
-		}
-	}
+	p.PowerToggle.SetActive(enabled)
+	p.BrightnessInc.SetActive(enabled)
+	p.BrightnessDec.SetActive(enabled)
 }
 
 func (p *KeylightPlugin) discover() error {

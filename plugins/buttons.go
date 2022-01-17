@@ -11,11 +11,12 @@ import (
 )
 
 type ImageButton struct {
-	img      image.Image
-	action   streamdeck.ButtonActionHandler
-	Size     *image.Point
-	btnIndex int
-	active   bool
+	img           image.Image
+	action        streamdeck.ButtonActionHandler
+	Size          *image.Point
+	btnIndex      int
+	updateHandler func(streamdeck.Button)
+	active        bool
 }
 
 func NewImageButtonFromFile(fname string) (*ImageButton, error) {
@@ -28,8 +29,9 @@ func NewImageButtonFromFile(fname string) (*ImageButton, error) {
 
 func NewImageButton(im image.Image) *ImageButton {
 	ib := &ImageButton{
-		Size:   &image.Point{X: 72, Y: 72},
-		active: true,
+		Size:          &image.Point{X: 72, Y: 72},
+		active:        true,
+		updateHandler: func(_ streamdeck.Button) {}, // noop update handler.
 	}
 	ib.SetImage(im)
 	return ib
@@ -43,6 +45,7 @@ func (b *ImageButton) SetImage(i image.Image) {
 	dst := image.NewRGBA(resizer.Bounds(i.Bounds()))
 	resizer.Draw(dst, i)
 	b.img = dst
+	b.updateHandler(b)
 }
 
 // ButtonDisplay interface methods.
@@ -60,10 +63,16 @@ func (b *ImageButton) GetImageForButton(btnSize int) image.Image {
 	return dst
 }
 
-func (b *ImageButton) GetButtonIndex() int    { return b.btnIndex }
-func (b *ImageButton) SetButtonIndex(idx int) { b.btnIndex = idx }
+func (b *ImageButton) GetButtonIndex() int { return b.btnIndex }
+func (b *ImageButton) SetButtonIndex(idx int) {
+	b.btnIndex = idx
+	b.updateHandler(b)
+}
 
-func (b *ImageButton) RegisterUpdateHandler(func(streamdeck.Button)) {}
+func (b *ImageButton) RegisterUpdateHandler(uh func(streamdeck.Button)) {
+	b.updateHandler = uh
+}
+
 func (b *ImageButton) Pressed() {
 	if b.action == nil {
 		return
@@ -81,6 +90,7 @@ func (b *ImageButton) IsActive() bool {
 }
 func (b *ImageButton) SetActive(active bool) {
 	b.active = active
+	b.updateHandler(b)
 }
 
 // NewImageFromFile
