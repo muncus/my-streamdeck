@@ -32,7 +32,6 @@ type OBSPluginConfig struct {
 }
 
 type OBSPlugin struct {
-	d            *streamdeck.StreamDeck
 	client       *obsws.Client
 	ownedButtons []plugins.ActionButton // track all buttons we own, so they can be enabled/disabled
 	ticker       *time.Ticker
@@ -41,7 +40,7 @@ type OBSPlugin struct {
 
 // New creates a new instance of the OBS plugin, to display on the given streamdeck.
 // config may contain fields from OBSPluginConfig.
-func New(d *streamdeck.StreamDeck, config *toml.Tree) (*OBSPlugin, error) {
+func New(config *toml.Tree) (*OBSPlugin, error) {
 	// obsws logs are considered at "debug" level, so disable them if we've asked for no debug logs.
 	// the standard logging library does not have a concept of log levels, so we set the output stream manually
 	if e := log.Debug(); e.Enabled() {
@@ -55,7 +54,6 @@ func New(d *streamdeck.StreamDeck, config *toml.Tree) (*OBSPlugin, error) {
 		return &OBSPlugin{}, fmt.Errorf("failed to parse OBS config: %w", err)
 	}
 	plugin := &OBSPlugin{
-		d: d,
 		client: &obsws.Client{
 			Host:     configstruct.Host,
 			Port:     configstruct.Port,

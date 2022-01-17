@@ -64,7 +64,6 @@ func main() {
 
 	// OBS Plugin
 	obsPlugin, err := obswebsocket.New(
-		deckDevice,
 		config.GetDefault("obswebsocket", &toml.Tree{}).(*toml.Tree))
 	if err != nil {
 		log.Fatal().Msgf("failed to initialize obswebsocket plugin: %s", err)
@@ -95,7 +94,7 @@ func main() {
 	deckDevice.AddButton(14, obsbtn)
 
 	// keylights
-	lightPlugin := keylight.New(deckDevice)
+	lightPlugin := keylight.New()
 	deckDevice.AddButton(2, lightPlugin.PowerToggle)
 	deckDevice.AddButton(7, lightPlugin.BrightnessInc)
 	deckDevice.AddButton(12, lightPlugin.BrightnessDec)

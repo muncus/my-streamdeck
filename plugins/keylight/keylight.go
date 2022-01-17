@@ -17,9 +17,7 @@ import (
 var Logger zerolog.Logger = log.Logger.With().Str("plugin", "keylight").Logger().Output(zerolog.ConsoleWriter{Out: os.Stdout})
 
 type KeylightPlugin struct {
-	d               *streamdeck.StreamDeck
 	light           *kl.Device
-	ready           bool
 	quitter         chan (bool)
 	ticker          time.Ticker
 	brightIncrement int
@@ -29,10 +27,8 @@ type KeylightPlugin struct {
 	BrightnessDec   *plugins.ImageButton
 }
 
-func New(d *streamdeck.StreamDeck) *KeylightPlugin {
+func New() *KeylightPlugin {
 	plugin := &KeylightPlugin{
-		ready:           false,
-		d:               d,
 		brightIncrement: 10,
 		tempIncrement:   1,
 		ticker:          *time.NewTicker(5 * time.Second),
@@ -105,7 +101,6 @@ func (p *KeylightPlugin) discover() error {
 	// NB: this only finds one light.
 	p.light = <-disc.ResultsCh()
 	Logger.Debug().Msgf("found: %s", p.light)
-	p.ready = true
 	return nil
 }
 
