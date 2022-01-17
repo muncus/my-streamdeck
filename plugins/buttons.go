@@ -7,7 +7,11 @@ import (
 
 	"github.com/disintegration/gift"
 	streamdeck "github.com/magicmonkey/go-streamdeck"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
+
+var Logger zerolog.Logger = log.Logger.With().Logger().Output(zerolog.ConsoleWriter{Out: os.Stdout})
 
 type ImageButton struct {
 	img           image.Image
@@ -73,6 +77,10 @@ func (b *ImageButton) RegisterUpdateHandler(uh func(streamdeck.Button)) {
 
 func (b *ImageButton) Pressed() {
 	if b.action == nil {
+		return
+	}
+	if !b.IsActive() {
+		Logger.Debug().Msgf("button %d pressed, but is inactive", b.btnIndex)
 		return
 	}
 	b.action.Pressed(b)
