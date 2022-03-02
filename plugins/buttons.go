@@ -95,8 +95,10 @@ func (b *ImageButton) IsActive() bool {
 	return b.active
 }
 func (b *ImageButton) SetActive(active bool) {
-	b.active = active
-	b.updateHandler(b)
+	if b.active != active {
+		b.active = active
+		b.updateHandler(b)
+	}
 }
 
 // NewImageFromFile
