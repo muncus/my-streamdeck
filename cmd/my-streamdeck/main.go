@@ -99,6 +99,14 @@ func main() {
 	deckDevice.AddButton(7, lightPlugin.BrightnessInc)
 	deckDevice.AddButton(12, lightPlugin.BrightnessDec)
 
+	// Re-connect headset.
+	headsetBtn, err := plugins.NewImageButtonFromFile("images/headset.png")
+	if err != nil {
+		log.Fatal().Msgf("Could not create Image button: %s", err)
+	}
+	headsetBtn.SetActionHandler(plugins.NewExecAction("bluetoothctl", "connect", "E4:22:A5:E9:09:96"))
+	deckDevice.AddButton(1, headsetBtn)
+
 	// Gracefully exit on interrupt, clearing buttons.
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)

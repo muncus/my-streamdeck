@@ -45,3 +45,7 @@ different library for streamdeck communications.
 ## Misc
 - teapot icons are from the Noun Project [tea emoticon set](https://thenounproject.com/aomam/collection/teapot-emoticons-line)
 - Other icons come from the Google [Material Design Icon collection](https://fonts.google.com/icons)
+
+### Icon Notes
+- The raw images from the Material Design Icon set have a transparent
+  background. To make them white: `convert icon_transparent.png -background "#FFFFFF" -flatten icon.png`

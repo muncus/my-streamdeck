@@ -1,12 +1,15 @@
 package plugins
 
 import (
+	"errors"
 	"fmt"
 	"image"
 	"os"
+	"os/exec"
 
 	"github.com/disintegration/gift"
 	streamdeck "github.com/magicmonkey/go-streamdeck"
+	"github.com/magicmonkey/go-streamdeck/actionhandlers"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -112,4 +115,21 @@ func NewImageFromFile(fname string) (image.Image, error) {
 		return nil, fmt.Errorf("could not decode image file %s : %w", fname, err)
 	}
 	return im, nil
+}
+
+// NewExecAction creates an action handler that executes the given command, logging errors.
+func NewExecAction(c string, args ...string) streamdeck.ButtonActionHandler {
+	return actionhandlers.NewCustomAction(func(b streamdeck.Button) {
+		cmd := exec.Command(c, args...)
+		log.Debug().Msgf("Running: %s", cmd.String())
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			exitErr := &exec.ExitError{}
+			if errors.As(err, &exitErr) {
+				log.Error().Err(err).Msgf("command exited %d: %s", exitErr.ExitCode(), exitErr.Stderr)
+			}
+			log.Error().Err(err).Msg(string(output))
+		}
+		log.Debug().Msg(string(output))
+	})
 }
