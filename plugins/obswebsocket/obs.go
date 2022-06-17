@@ -82,7 +82,7 @@ func (p *OBSPlugin) watchConnectionState() {
 
 // connect to the obs websocket, and activate buttons.
 func (p *OBSPlugin) connect() {
-	p.setButtonsEnabled(p.client.Connected())
+	// p.setButtonsEnabled(p.client.Connected())
 	if !p.client.Connected() {
 		p.client.Connect()
 		p.setButtonsEnabled(p.client.Connected())
