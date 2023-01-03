@@ -1,6 +1,7 @@
 package plugins
 
 import (
+	"embed"
 	"errors"
 	"fmt"
 	"image"
@@ -13,6 +14,11 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
+
+// Embedded filesystem with a collection of available icons.
+//
+//go:embed icons
+var icons embed.FS
 
 var Logger zerolog.Logger = log.Logger.With().Logger().Output(zerolog.ConsoleWriter{Out: os.Stdout})
 
@@ -106,7 +112,7 @@ func (b *ImageButton) SetActive(active bool) {
 
 // NewImageFromFile
 func NewImageFromFile(fname string) (image.Image, error) {
-	f, err := os.Open(fname)
+	f, err := icons.Open(fname)
 	if err != nil {
 		return nil, fmt.Errorf("could not open image file %s : %w", fname, err)
 	}
@@ -132,4 +138,22 @@ func NewExecAction(c string, args ...string) streamdeck.ButtonActionHandler {
 		}
 		log.Debug().Msg(string(output))
 	})
+}
+
+type MultiStateButton struct {
+	// map state name to a thing to display.
+	States       map[string]streamdeck.Button
+	InitialState streamdeck.Button
+	State        string
+}
+
+// AddState creates an available state for this button.
+func (b *MultiStateButton) AddState(state string, button streamdeck.Button) {
+	b.States[state] = button
+}
+
+// SetState updates the current state of the button.
+// The state must exist. This method is commonly called in a button action.
+func (b *MultiStateButton) SetState(s string) error {
+	return nil
 }

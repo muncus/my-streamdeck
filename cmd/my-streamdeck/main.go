@@ -69,7 +69,7 @@ func main() {
 		log.Fatal().Msgf("failed to initialize obswebsocket plugin: %s", err)
 	}
 	defer obsPlugin.Close()
-	scene1, err := plugins.NewImageButtonFromFile("images/webcam_bg.png")
+	scene1, err := plugins.NewImageButtonFromFile("icons/webcam_bg.png")
 	if err != nil {
 		log.Fatal().Msgf("Could not create Image button: %s", err)
 	}
@@ -77,7 +77,7 @@ func main() {
 	obsPlugin.ManageButton(scene1)
 	deckDevice.AddButton(4, scene1)
 
-	scene2, err := plugins.NewImageButtonFromFile("images/teapod-sad.png")
+	scene2, err := plugins.NewImageButtonFromFile("icons/teapod-sad.png")
 	if err != nil {
 		log.Fatal().Msgf("Could not create Image button: %s", err)
 	}
@@ -86,7 +86,7 @@ func main() {
 	deckDevice.AddButton(9, scene2)
 
 	//NB: this button is not managed by the OBSPlugin, because it should not be disabled when obs is inactive.
-	obsbtn, err := plugins.NewImageButtonFromFile("images/obs.png")
+	obsbtn, err := plugins.NewImageButtonFromFile("icons/obs.png")
 	if err != nil {
 		log.Fatal().Msgf("Could not create Image button: %s", err)
 	}
@@ -100,7 +100,7 @@ func main() {
 	deckDevice.AddButton(12, lightPlugin.BrightnessDec)
 
 	// Re-connect headset.
-	headsetBtn, err := plugins.NewImageButtonFromFile("images/headset.png")
+	headsetBtn, err := plugins.NewImageButtonFromFile("icons/headset.png")
 	if err != nil {
 		log.Fatal().Msgf("Could not create Image button: %s", err)
 	}

@@ -7,7 +7,6 @@ import (
 
 	"github.com/magicmonkey/go-streamdeck"
 	"github.com/magicmonkey/go-streamdeck/actionhandlers"
-	"github.com/magicmonkey/go-streamdeck/buttons"
 	"github.com/muncus/my-streamdeck/plugins"
 	"github.com/pelletier/go-toml"
 	"github.com/rs/zerolog/log"
@@ -29,7 +28,7 @@ func NewGoogleMeetPlugin(d *streamdeck.StreamDeck, config *toml.Tree) (*GoogleMe
 	} else {
 		p.windowCommand = "windowfocus"
 	}
-	p.MuteButton, err = buttons.NewImageFileButton("images/microphone_bg.png")
+	p.MuteButton, err = plugins.NewImageButtonFromFile("icons/microphone_bg.png")
 	if err != nil {
 		return &GoogleMeetPlugin{}, fmt.Errorf("failed to create image button: %s", err)
 	}
@@ -42,7 +41,7 @@ func NewGoogleMeetPlugin(d *streamdeck.StreamDeck, config *toml.Tree) (*GoogleMe
 	}))
 
 	// Video Mute.
-	p.VideoMuteButton, err = buttons.NewImageFileButton("images/camera_toggle_bg.png")
+	p.VideoMuteButton, err = plugins.NewImageButtonFromFile("icons/camera_toggle_bg.png")
 	if err != nil {
 		return &GoogleMeetPlugin{}, fmt.Errorf("failed to create image button: %s", err)
 	}
@@ -52,7 +51,7 @@ func NewGoogleMeetPlugin(d *streamdeck.StreamDeck, config *toml.Tree) (*GoogleMe
 	}))
 
 	// Raise hand
-	p.RaiseHandButton, err = buttons.NewImageFileButton("images/hand_transparent_bg.png")
+	p.RaiseHandButton, err = plugins.NewImageButtonFromFile("icons/hand_transparent_bg.png")
 	if err != nil {
 		return &GoogleMeetPlugin{}, fmt.Errorf("failed to create image button: %s", err)
 	}

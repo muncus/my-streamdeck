@@ -36,7 +36,7 @@ func New() *KeylightPlugin {
 	}
 
 	// plugin.PowerToggle = buttons.NewTextButton("aziz, light!")
-	plugin.PowerToggle, _ = plugins.NewImageButtonFromFile("images/light_mode_bg.png")
+	plugin.PowerToggle, _ = plugins.NewImageButtonFromFile("icons/light_mode_bg.png")
 	plugin.PowerToggle.SetActionHandler(plugin.LightAction(func(l *kl.Light) {
 		if l.On > 0 {
 			l.On = 0
@@ -46,11 +46,11 @@ func New() *KeylightPlugin {
 	}))
 
 	// TODO: add a min/max to these values.
-	plugin.BrightnessInc, _ = plugins.NewImageButtonFromFile("images/more_bright_bg.png")
+	plugin.BrightnessInc, _ = plugins.NewImageButtonFromFile("icons/more_bright_bg.png")
 	plugin.BrightnessInc.SetActionHandler(plugin.LightAction(func(l *kl.Light) {
 		l.Brightness = l.Brightness + plugin.brightIncrement
 	}))
-	plugin.BrightnessDec, _ = plugins.NewImageButtonFromFile("images/less_bright_bg.png")
+	plugin.BrightnessDec, _ = plugins.NewImageButtonFromFile("icons/less_bright_bg.png")
 	plugin.BrightnessDec.SetActionHandler(plugin.LightAction(func(l *kl.Light) {
 		l.Brightness = l.Brightness - plugin.brightIncrement
 	}))
