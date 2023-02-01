@@ -1,0 +1,15 @@
+# Systemd service definition for running streamdeck controls.
+# It can be placed in ~/.config/systemd/user/streamdeck.service, and activated
+# with `systemd --user activate streamdeck`.
+# This will ensure the service is running at all times.
+
+[Unit]
+Description=My Streamdeck controls
+
+[Service]
+ExecStart=/path/to/my-streamdeck --config /path/to/streamdeck.toml
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=default.target
