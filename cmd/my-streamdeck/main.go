@@ -13,7 +13,6 @@ import (
 	"github.com/muncus/my-streamdeck/plugins"
 	"github.com/muncus/my-streamdeck/plugins/googlemeet"
 	"github.com/muncus/my-streamdeck/plugins/keylight"
-	"github.com/muncus/my-streamdeck/plugins/obswebsocket"
 	"github.com/pelletier/go-toml"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -58,46 +57,47 @@ func main() {
 	if err != nil {
 		log.Fatal().Msgf("failed to initialize googlemeet plugin: %s", err)
 	}
-	deckDevice.AddButton(0, meetPlugin.VideoMuteButton)
-	deckDevice.AddButton(5, meetPlugin.MuteButton)
-	deckDevice.AddButton(10, meetPlugin.RaiseHandButton)
+	deckDevice.AddButton(0, meetPlugin.MuteButton)
+	deckDevice.AddButton(1, meetPlugin.VideoMuteButton)
+	deckDevice.AddButton(2, meetPlugin.RaiseHandButton)
 
-	// OBS Plugin
-	obsPlugin, err := obswebsocket.New(
-		config.GetDefault("obswebsocket", &toml.Tree{}).(*toml.Tree))
-	if err != nil {
-		log.Fatal().Msgf("failed to initialize obswebsocket plugin: %s", err)
-	}
-	defer obsPlugin.Close()
-	scene1, err := plugins.NewImageButtonFromFile("icons/webcam_bg.png")
-	if err != nil {
-		log.Fatal().Msgf("Could not create Image button: %s", err)
-	}
-	scene1.SetActionHandler(obsPlugin.NewSceneChangeAction("webcam"))
-	obsPlugin.ManageButton(scene1)
-	deckDevice.AddButton(4, scene1)
+	// Commented out for now, as i'm not using OBS.
+	// // OBS Plugin
+	// obsPlugin, err := obswebsocket.New(
+	// 	config.GetDefault("obswebsocket", &toml.Tree{}).(*toml.Tree))
+	// if err != nil {
+	// 	log.Fatal().Msgf("failed to initialize obswebsocket plugin: %s", err)
+	// }
+	// defer obsPlugin.Close()
+	// scene1, err := plugins.NewImageButtonFromFile("icons/webcam_bg.png")
+	// if err != nil {
+	// 	log.Fatal().Msgf("Could not create Image button: %s", err)
+	// }
+	// scene1.SetActionHandler(obsPlugin.NewSceneChangeAction("webcam"))
+	// obsPlugin.ManageButton(scene1)
+	// deckDevice.AddButton(4, scene1)
 
-	scene2, err := plugins.NewImageButtonFromFile("icons/teapod-sad.png")
-	if err != nil {
-		log.Fatal().Msgf("Could not create Image button: %s", err)
-	}
-	scene2.SetActionHandler(obsPlugin.NewSceneChangeAction("sad-teapot"))
-	obsPlugin.ManageButton(scene2)
-	deckDevice.AddButton(9, scene2)
+	// scene2, err := plugins.NewImageButtonFromFile("icons/teapod-sad.png")
+	// if err != nil {
+	// 	log.Fatal().Msgf("Could not create Image button: %s", err)
+	// }
+	// scene2.SetActionHandler(obsPlugin.NewSceneChangeAction("sad-teapot"))
+	// obsPlugin.ManageButton(scene2)
+	// deckDevice.AddButton(9, scene2)
 
-	//NB: this button is not managed by the OBSPlugin, because it should not be disabled when obs is inactive.
-	obsbtn, err := plugins.NewImageButtonFromFile("icons/obs.png")
-	if err != nil {
-		log.Fatal().Msgf("Could not create Image button: %s", err)
-	}
-	obsbtn.SetActionHandler(obsPlugin.LaunchOBSAction())
-	deckDevice.AddButton(14, obsbtn)
+	// //NB: this button is not managed by the OBSPlugin, because it should not be disabled when obs is inactive.
+	// obsbtn, err := plugins.NewImageButtonFromFile("icons/obs.png")
+	// if err != nil {
+	// 	log.Fatal().Msgf("Could not create Image button: %s", err)
+	// }
+	// obsbtn.SetActionHandler(obsPlugin.LaunchOBSAction())
+	// deckDevice.AddButton(14, obsbtn)
 
 	// keylights
 	lightPlugin := keylight.New()
-	deckDevice.AddButton(2, lightPlugin.PowerToggle)
-	deckDevice.AddButton(7, lightPlugin.BrightnessInc)
-	deckDevice.AddButton(12, lightPlugin.BrightnessDec)
+	deckDevice.AddButton(5, lightPlugin.PowerToggle)
+	deckDevice.AddButton(6, lightPlugin.BrightnessInc)
+	deckDevice.AddButton(7, lightPlugin.BrightnessDec)
 
 	// Re-connect headset.
 	headsetBtn, err := plugins.NewImageButtonFromFile("icons/headset.png")
@@ -105,7 +105,7 @@ func main() {
 		log.Fatal().Msgf("Could not create Image button: %s", err)
 	}
 	headsetBtn.SetActionHandler(plugins.NewExecAction("bluetoothctl", "connect", "E4:22:A5:E9:09:96"))
-	deckDevice.AddButton(1, headsetBtn)
+	deckDevice.AddButton(4, headsetBtn)
 
 	// Gracefully exit on interrupt, clearing buttons.
 	c := make(chan os.Signal, 1)

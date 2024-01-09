@@ -100,7 +100,7 @@ func (p *KeylightPlugin) discover() error {
 	}
 	// NB: this only finds one light.
 	p.light = <-disc.ResultsCh()
-	Logger.Debug().Msgf("found: %s", p.light)
+	Logger.Debug().Msgf("found: %v", p.light)
 	return nil
 }
 
